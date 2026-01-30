@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEON BATTLE CLICKER</title>
+    <!-- PeerJS -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --primary: #3b82f6;
+            --primary-glow: #60a5fa;
+            --enemy: #ef4444;
+            --enemy-glow: #f87171;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --accent: #10b981;
+        }
+
+        * { box-sizing: border-box; touch-action: manipulation; }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: radial-gradient(circle at top center, #1e293b, #0f172a);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* 背景のアニメーション装飾 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 60%);
+            z-index: -1;
+            animation: pulseBg 10s infinite alternate;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 24px;
+            /* ガラスモーフィズム */
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin: 20px;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            margin: 0 0 20px 0;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary-glow), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        /* --- ロビー画面 --- */
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .id-display {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px;
+            border-radius: 12px;
+            font-family: 'Orbitron', monospace;
+            text-align: center;
+            font-size: 1.5rem; /* IDを見やすく少し大きく */
+            letter-spacing: 2px;
+            color: var(--primary-glow);
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .id-display:hover { background: rgba(0, 0, 0, 0.5); border-color: var(--primary); }
+        .id-display i { font-size: 1rem; color: var(--text-sub); }
+
+        input[type="text"] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .btn-connect {
+            background: linear-gradient(135deg, var(--accent), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        .btn-connect:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6); }
+
+        .status-msg {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            min-height: 20px;
+        }
+
+        /* --- ゲーム画面 --- */
+        #game { display: none; }
+
+        .battle-field {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .vs-badge {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: rgba(255,255,255,0.1);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .player-card {
+            width: 45%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 1;
+            transition: transform 0.1s;
+        }
+
+        .avatar {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .hp-bar-container {
+            height: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 8px 0;
+            position: relative;
+        }
+
+        .hp-fill {
+            height: 100%;
+            width: 100%;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        /* 自分の色 */
+        .me .hp-fill { background: linear-gradient(90deg, #2563eb, var(--primary)); box-shadow: 0 0 10px var(--primary); }
+        .me .avatar { text-shadow: 0 0 15px var(--primary); }
+        
+        /* 相手の色 */
+        .enemy .hp-fill { background: linear-gradient(90deg, #dc2626, var(--enemy)); box-shadow: 0 0 10px var(--enemy); }
+        .enemy .avatar { text-shadow: 0 0 15px var(--enemy); }
+
+        .hp-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.85rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* 攻撃ボタン */
+        #click-btn {
+            height: 120px;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid var(--primary);
+            color: var(--primary-glow);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2), inset 0 0 20px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        #click-btn:active {
+            transform: scale(0.96);
+            border-color: #fff;
+            color: #fff;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+        }
+
+        #click-btn i { font-size: 2rem; margin-bottom: 4px; display: block; }
+        
+        #click-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+
+        /* ログエリア */
+        #log {
+            height: 120px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 12px;
+            overflow-y: auto;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.75rem;
+            color: var(--primary-glow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column-reverse; /* 新しいログを下から積むのではなく、DOM操作で上に追加しつつスクロール管理 */
+        }
+        #log div { margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; }
+
+        /* リザルト */
+        #result-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 24px;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        #result-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .result-title { font-family: 'Orbitron'; font-size: 2.5rem; margin-bottom: 20px; font-weight: 900; }
+        .win { color: var(--accent); text-shadow: 0 0 20px var(--accent); }
+        .lose { color: var(--enemy); text-shadow: 0 0 20px var(--enemy); }
+
+        .btn-reset {
+            background: white; color: #0f172a; max-width: 200px;
+        }
+
+        /* ユーティリティ */
+        .hidden { display: none !important; }
+
+        /* アニメーション定義 */
+        @keyframes pulseBg { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .damage-flash { animation: flashRed 0.2s ease-out; }
+        @keyframes flashRed { 0% { background: rgba(239, 68, 68, 0.5); } 100% { background: rgba(30, 41, 59, 0.7); } }
+        
+        /* スクロールバー装飾 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><i class="fa-solid fa-gamepad"></i> BATTLE CLICKER</h1>
+
+    <!-- ロビー画面 -->
+    <div id="lobby" class="panel">
+        <div style="text-align:center; color: var(--text-sub); margin-bottom: -10px;">YOUR ID</div>
+        <div id="my-id" class="id-display" onclick="copyId()" title="クリックしてコピー">
+            <span>...</span>
+            <i class="fa-regular fa-copy"></i>
+        </div>
+        
+        <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 10px 0;"></div>
+        
+        <div class="input-group">
+            <input type="text" id="peer-id-input" placeholder="Enter Rival ID here...">
+        </div>
+        
+        <button onclick="connectToPeer()" class="btn-connect">
+            <i class="fa-solid fa-bolt"></i> CONNECT & FIGHT
+        </button>
+        
+        <div id="status-msg" class="status-msg">
+            <i class="fa-solid fa-satellite-dish"></i> ID生成中...
+        </div>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div id="game" style="position: relative;">
+        <!-- リザルトオーバーレイ -->
+        <div id="result-overlay">
+            <div id="result-title" class="result-title">WIN</div>
+            <button class="btn-reset" onclick="resetGame()">PLAY AGAIN</button>
+        </div>
+
+        <div class="battle-field">
+            <!-- プレイヤーカード -->
+            <div class="player-card me" id="card-me">
+                <span class="avatar"><i class="fa-solid fa-user-astronaut"></i></span>
+                <div class="hp-bar-container">
+                    <div id="my-hp-bar" class="hp-fill"></div>
+                </div>
+                <div id="my-hp-text" class="hp-text">100</div>
+            </div>
+
+            <div class="vs-badge">VS</div>
+
+            <!-- 相手カード -->
+            <div class="player-card enemy" id="card-enemy">
+                <span class="avatar"><i class="fa-solid fa-robot"></i></span>
+                <div class="hp-bar-container">
+                    <div id="enemy-hp-bar" class="hp-fill"></div>
+                </div>
+                <div id="enemy-hp-text" class="hp-text">100</div>
+            </div>
+        </div>
+
+        <button id="click-btn" onclick="attack()">
+            <i class="fa-solid fa-fire-flame-curved"></i>
+            ATTACK
+        </button>
+
+        <div id="log"></div>
+    </div>
+</div>
+
+<script>
+    // --- ゲーム設定 ---
+    const MAX_HP = 100;
+    let myHp = MAX_HP;
+    let enemyHp = MAX_HP;
+    let isGameActive = false;
+    let conn = null; 
+    let peer = null; 
+
+    // --- ID生成ロジック ---
+    function generateRandomId(length) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
+    // 5文字のランダムIDを生成
+    const myPeerId = generateRandomId(5);
+
+    // PeerJS セットアップ (IDを指定して初期化)
+    peer = new Peer(myPeerId, { debug: 1 });
+
+    peer.on('open', (id) => {
+        // ID発行成功時
+        document.getElementById('my-id').innerHTML = `<span>${id}</span> <i class="fa-regular fa-copy"></i>`;
+        updateStatus("対戦相手を待っています...");
+    });
+
+    peer.on('connection', (connection) => {
+        handleConnection(connection);
+        updateStatus("接続確立！準備中...");
+    });
+
+    peer.on('error', (err) => {
+        console.error(err);
+        if(err.type === 'unavailable-id') {
+            alert('IDが重複しました。ページをリロードして再生成してください。');
+        } else {
+            updateStatus("エラー: " + err.type);
+        }
+    });
+
+    function connectToPeer() {
+        const remoteId = document.getElementById('peer-id-input').value.trim();
+        if (!remoteId) return alert("相手のIDを入力してください");
+        
+        if (remoteId === myPeerId) return alert("自分自身には接続できません");
+
+        updateStatus("接続中...");
+        const connection = peer.connect(remoteId);
+        handleConnection(connection);
+    }
+
+    function handleConnection(connection) {
+        conn = connection;
+
+        conn.on('open', () => {
+            updateStatus("BATTLE START!");
+            setTimeout(() => {
+                startGameUI();
+                sendData({ type: 'RESET' });
+            }, 500);
+        });
+
+        conn.on('data', (data) => {
+            handleData(data);
+        });
+
+        conn.on('close', () => {
+            alert("相手との接続が切れました");
+            location.reload();
+        });
+    }
+
+    function handleData(data) {
+        if (data.type === 'ATTACK') {
+            receiveDamage(data.damage);
+        } else if (data.type === 'RESET') {
+            initGameVals();
+        }
+    }
+
+    function sendData(data) {
+        if (conn && conn.open) {
+            conn.send(data);
+        }
+    }
+
+    // --- ゲームロジック & UI制御 ---
+
+    function startGameUI() {
+        document.getElementById('lobby').style.display = 'none';
+        document.getElementById('game').style.display = 'block';
+        initGameVals();
+    }
+
+    function initGameVals() {
+        myHp = MAX_HP;
+        enemyHp = MAX_HP;
+        isGameActive = true;
+        
+        document.getElementById('result-overlay').classList.remove('active');
+        document.getElementById('click-btn').disabled = false;
+        document.getElementById('log').innerHTML = ''; // ログクリア
+        
+        updateHpUI();
+        log("システム同期完了... BATTLE START!", 'system');
+    }
+
+    function attack() {
+        if (!isGameActive) return;
+
+        // クリティカルヒット演出用（低確率で大ダメージ）
+        const isCritical = Math.random() < 0.1; 
+        const damage = isCritical ? Math.floor(Math.random() * 5) + 5 : Math.floor(Math.random() * 3) + 1;
+
+        enemyHp -= damage;
+        if (enemyHp < 0) enemyHp = 0;
+        
+        // 攻撃アニメーション
+        const btn = document.getElementById('click-btn');
+        btn.style.transform = "scale(0.95)";
+        setTimeout(() => btn.style.transform = "scale(1)", 50);
+
+        // 相手カードを揺らす
+        const enemyCard = document.getElementById('card-enemy');
+        enemyCard.classList.remove('shake');
+        void enemyCard.offsetWidth; // リフロー
+        enemyCard.classList.add('shake');
+
+        log(`ATTACK! -> 相手に ${damage} ダメージ`, 'attack');
+        updateHpUI();
+        sendData({ type: 'ATTACK', damage: damage });
+        checkWinLose();
+    }
+
+    function receiveDamage(amount) {
+        if (!isGameActive) return;
+
+        myHp -= amount;
+        if (myHp < 0) myHp = 0;
+
+        // 被ダメージ演出
+        const myCard = document.getElementById('card-me');
+        myCard.classList.remove('shake');
+        myCard.classList.add('damage-flash'); // 赤く点滅
+        void myCard.offsetWidth;
+        myCard.classList.add('shake');
+        
+        setTimeout(() => myCard.classList.remove('damage-flash'), 200);
+
+        log(`WARNING! <- ${amount} ダメージ受けた`, 'damage');
+        updateHpUI();
+        checkWinLose();
+    }
+
+    function updateHpUI() {
+        document.getElementById('my-hp-text').innerText = myHp;
+        const myBar = document.getElementById('my-hp-bar');
+        myBar.style.width = `${(myHp / MAX_HP) * 100}%`;
+        
+        // HPが少なくなると色が変わる演出
+        if(myHp < 30) myBar.style.backgroundColor = '#ef4444';
+
+        document.getElementById('enemy-hp-text').innerText = enemyHp;
+        document.getElementById('enemy-hp-bar').style.width = `${(enemyHp / MAX_HP) * 100}%`;
+    }
+
+    function checkWinLose() {
+        if (!isGameActive) return;
+
+        if (myHp <= 0) {
+            finishGame("YOU LOSE...", "lose");
+        } else if (enemyHp <= 0) {
+            finishGame("YOU WIN!!", "win");
+        }
+    }
+
+    function finishGame(msg, type) {
+        isGameActive = false;
+        document.getElementById('click-btn').disabled = true;
+        
+        const overlay = document.getElementById('result-overlay');
+        const title = document.getElementById('result-title');
+        
+        title.innerText = msg;
+        title.className = "result-title " + type; // 色変更クラス
+        overlay.classList.add('active');
+        
+        log(`GAME SET: ${msg}`, 'system');
+    }
+
+    function resetGame() {
+        initGameVals();
+        sendData({ type: 'RESET' });
+    }
+
+    // --- ユーティリティ ---
+    function updateStatus(msg) {
+        const el = document.getElementById('status-msg');
+        el.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> ${msg}`;
+        // 点滅アニメーションリセット
+        el.style.animation = 'none';
+        el.offsetHeight; /* trigger reflow */
+        el.style.animation = 'pulseBg 2s infinite';
+    }
+
+    function log(msg, type) {
+        const logBox = document.getElementById('log');
+        const div = document.createElement('div');
+        
+        let color = '#94a3b8';
+        let icon = '>';
+        if (type === 'attack') { color = '#60a5fa'; icon = '⚔️'; }
+        if (type === 'damage') { color = '#f87171'; icon = '⚠️'; }
+        if (type === 'system') { color = '#10b981'; icon = '🖥️'; }
+
+        div.style.color = color;
+        div.innerHTML = `<span style="opacity:0.6">${new Date().toLocaleTimeString().slice(0,8)}</span> ${icon} ${msg}`;
+        
+        logBox.insertBefore(div, logBox.firstChild);
+    }
+
+    function copyId() {
+        const idText = document.getElementById('my-id').innerText.replace('Generating...', '').trim();
+        if(!idText || idText === '...') return;
+        
+        navigator.clipboard.writeText(idText).then(() => {
+            const originalHTML = document.getElementById('my-id').innerHTML;
+            document.getElementById('my-id').innerHTML = `<span>COPIED!</span> <i class="fa-solid fa-check"></i>`;
+            document.getElementById('my-id').style.borderColor = '#10b981';
+            
+            setTimeout(() => {
+                document.getElementById('my-id').innerHTML = originalHTML;
+                document.getElementById('my-id').style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            }, 1500);
+        });
+    }
+</script>
+
+</body>
+</html>
