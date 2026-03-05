@@ -3,244 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extreme Earrape Maker</title>
+    <title>超音割れビデオメーカー - Extreme Earrape Maker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .gradient-bg { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
-        .neon-border { box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+        body { background-color: #0a0a0a; color: #ffffff; overflow-x: hidden; }
+        .glitch-text { text-shadow: 2px 0 #ff0000, -2px 0 #00ff00; }
+        .extreme-shake { animation: shake 0.1s infinite; }
         @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
+            0% { transform: translate(1px, 1px); }
+            50% { transform: translate(-1px, -1px); }
+            100% { transform: translate(1px, -1px); }
         }
-        .shaking { animation: shake 0.5s infinite; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #ef4444; border-radius: 50%; cursor: pointer; }
     </style>
 </head>
-<body class="gradient-bg min-h-screen text-gray-100 flex flex-col items-center p-4">
+<body class="flex flex-col items-center p-4 md:p-10 font-sans">
 
-    <header class="w-full max-w-4xl text-center my-8">
-        <h1 id="title-text" class="text-5xl md:text-7xl font-black text-red-600 mb-2 italic tracking-tighter">EAR RAPE GEN</h1>
-        <p class="text-gray-400 font-bold uppercase tracking-widest">Digital Distortion Engine</p>
-    </header>
+    <div class="w-full max-w-3xl">
+        <header class="text-center mb-10">
+            <h1 id="main-title" class="text-5xl md:text-7xl font-black italic text-red-600 uppercase tracking-tighter mb-2">Extreme Loudness</h1>
+            <p class="text-gray-400 font-bold uppercase tracking-widest text-sm">Digital Ear-Destroyer Engine</p>
+        </header>
 
-    <main class="w-full max-w-2xl bg-black/60 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-white/10">
-        
-        <!-- Upload -->
-        <div id="upload-section" class="flex flex-col items-center justify-center border-2 border-dashed border-gray-500 rounded-2xl p-12 hover:border-red-500 transition-all cursor-pointer bg-white/5" onclick="document.getElementById('video-input').click()">
-            <div class="bg-red-600 p-4 rounded-full mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-                </svg>
-            </div>
-            <p class="text-xl font-bold">動画ファイルを選択</p>
-            <input type="file" id="video-input" accept="video/*" class="hidden">
-        </div>
-
-        <!-- Editor -->
-        <div id="editor-section" class="hidden space-y-6">
-            <div class="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center border border-gray-700">
-                <video id="preview-video" class="w-full h-full" playsinline crossorigin="anonymous"></video>
-                <div id="visualizer-overlay" class="absolute inset-0 pointer-events-none opacity-50 flex items-center justify-center">
-                    <!-- Dynamic waves or something could go here -->
+        <div class="bg-zinc-900 rounded-3xl p-6 shadow-2xl border border-zinc-800">
+            <!-- Upload Section -->
+            <div id="drop-zone" class="border-4 border-dashed border-zinc-700 rounded-2xl p-12 flex flex-col items-center justify-center hover:border-red-600 transition-colors cursor-pointer group">
+                <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
                 </div>
+                <p class="text-xl font-black text-white">動画ファイルをアップロード</p>
+                <p class="text-zinc-500 mt-2 text-sm uppercase">Click or Drag & Drop</p>
+                <input type="file" id="video-input" accept="video/*" class="hidden">
             </div>
 
-            <div class="space-y-6 bg-white/5 p-6 rounded-2xl">
-                <div>
-                    <div class="flex justify-between mb-2">
-                        <label class="text-sm font-black text-red-500 uppercase">音割れレベル: <span id="gain-display">30</span></label>
+            <!-- Editor Section -->
+            <div id="editor" class="hidden space-y-8 animate-in fade-in duration-500">
+                <div class="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center border border-zinc-800">
+                    <video id="preview-video" class="w-full h-full" playsinline></video>
+                    <div id="overlay" class="absolute inset-0 pointer-events-none bg-red-600/10 hidden"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-zinc-800/50 p-6 rounded-2xl">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-black text-red-500 uppercase tracking-widest">音割れレベル (Gain)</label>
+                            <span id="gain-val" class="text-xl font-mono text-white">30</span>
+                        </div>
+                        <input type="range" id="gain-slider" min="1" max="100" value="30" class="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-zinc-500 font-bold uppercase">
+                            <span>Mildly Loud</span>
+                            <span>Earrape</span>
+                            <span>Nuclear</span>
+                        </div>
                     </div>
-                    <input type="range" id="gain-slider" min="1" max="150" value="30" class="w-full h-3 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-red-600">
+
+                    <div class="flex flex-col justify-end">
+                        <button id="record-btn" class="bg-red-600 hover:bg-red-700 active:scale-95 transition-all text-white font-black py-4 rounded-xl text-xl uppercase tracking-tighter shadow-lg shadow-red-900/20">
+                            動画を生成して保存
+                        </button>
+                    </div>
                 </div>
+            </div>
 
-                <button id="process-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-xl text-xl uppercase tracking-tighter transform active:scale-95 transition-all shadow-lg">
-                    動画を書き出す (START RENDER)
-                </button>
+            <!-- Progress Section -->
+            <div id="progress-container" class="hidden py-10 space-y-6">
+                <div class="h-4 bg-zinc-800 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-red-600 w-0 transition-all duration-300"></div>
+                </div>
+                <p class="text-center font-black text-red-500 text-2xl italic animate-pulse">GENERATING CHAOS...</p>
+                <p class="text-center text-zinc-500 text-xs uppercase">※録画中にタブを閉じないでください</p>
+            </div>
+
+            <!-- Result Section -->
+            <div id="result" class="hidden space-y-6 text-center">
+                <div class="bg-green-600/20 border border-green-600/40 p-4 rounded-xl">
+                    <p class="text-green-500 font-bold">動画の生成が完了しました！</p>
+                </div>
+                <video id="final-video" class="w-full rounded-xl border border-zinc-800" controls></video>
+                <div class="flex gap-4">
+                    <a id="download-link" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl text-lg uppercase transition-colors">
+                        保存する
+                    </a>
+                    <button onclick="location.reload()" class="px-8 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-colors">
+                        戻る
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Processing -->
-        <div id="processing-overlay" class="hidden py-10 text-center">
-            <div class="mb-6 relative h-4 bg-gray-800 rounded-full overflow-hidden">
-                <div id="progress-bar" class="absolute top-0 left-0 h-full bg-red-600 w-0 transition-all duration-300"></div>
-            </div>
-            <p id="status-text" class="text-2xl font-black text-red-500 animate-pulse">RENDERING LOUDNESS...</p>
-        </div>
-
-        <!-- Result -->
-        <div id="result-section" class="hidden flex flex-col items-center space-y-6 pt-4">
-            <div class="p-4 bg-green-500/20 border border-green-500/50 rounded-xl w-full text-center">
-                <p class="text-green-400 font-bold">✓ 鼓膜破壊動画の生成に成功しました</p>
-            </div>
-            <video id="result-video" class="w-full rounded-xl border border-gray-700 shadow-xl" controls></video>
-            <div class="flex flex-col w-full gap-3">
-                <a id="download-link" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-black py-4 rounded-xl text-lg uppercase">
-                    動画を保存する
-                </a>
-                <button onclick="location.reload()" class="w-full bg-gray-800 text-gray-400 font-bold py-3 rounded-xl">
-                    最初からやり直す
-                </button>
-            </div>
-        </div>
-    </main>
-
-    <div id="msg-box" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-white text-black px-8 py-4 rounded-2xl font-bold shadow-2xl hidden z-50 border-4 border-red-600">
-        <span id="msg-text"></span>
+        <footer class="mt-10 text-center text-zinc-600 text-[10px] uppercase tracking-widest">
+            <p>※音量に十分注意して使用してください。聴覚への影響に責任は負いかねます。</p>
+        </footer>
     </div>
 
+    <!-- UI Message -->
+    <div id="toast" class="fixed bottom-10 bg-white text-black px-6 py-3 rounded-full font-bold shadow-2xl hidden transition-all"></div>
+
     <script>
-        const videoInput = document.getElementById('video-input');
+        const input = document.getElementById('video-input');
+        const dropZone = document.getElementById('drop-zone');
+        const editor = document.getElementById('editor');
         const previewVideo = document.getElementById('preview-video');
         const gainSlider = document.getElementById('gain-slider');
-        const gainDisplay = document.getElementById('gain-display');
-        const processBtn = document.getElementById('process-btn');
-        const uploadSection = document.getElementById('upload-section');
-        const editorSection = document.getElementById('editor-section');
-        const processingOverlay = document.getElementById('processing-overlay');
+        const gainVal = document.getElementById('gain-val');
+        const recordBtn = document.getElementById('record-btn');
+        const progressContainer = document.getElementById('progress-container');
         const progressBar = document.getElementById('progress-bar');
-        const resultSection = document.getElementById('result-section');
-        const resultVideo = document.getElementById('result-video');
+        const result = document.getElementById('result');
+        const finalVideo = document.getElementById('final-video');
         const downloadLink = document.getElementById('download-link');
-        const msgBox = document.getElementById('msg-box');
-        const msgText = document.getElementById('msg-text');
-        const titleText = document.getElementById('title-text');
+        const toast = document.getElementById('toast');
+        const overlay = document.getElementById('overlay');
+        const title = document.getElementById('main-title');
 
-        let audioCtx, source, gainNode, streamDestination;
-        let isProcessing = false;
+        let audioCtx, source, gainNode, dest;
+        let isRecording = false;
 
-        function showMessage(text) {
-            msgText.innerText = text;
-            msgBox.classList.remove('hidden');
-            setTimeout(() => msgBox.classList.add('hidden'), 4000);
+        function showToast(msg) {
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
         }
 
+        // Initialize Web Audio
         async function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
-            if (!source) {
                 source = audioCtx.createMediaElementSource(previewVideo);
                 gainNode = audioCtx.createGain();
-                streamDestination = audioCtx.createMediaStreamDestination();
+                dest = audioCtx.createMediaStreamDestination();
 
                 source.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
-                gainNode.connect(streamDestination);
+                gainNode.connect(dest);
             }
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
         }
 
-        videoInput.onchange = (e) => {
+        // File Selection Logic
+        dropZone.onclick = () => input.click();
+        input.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
-                const url = URL.createObjectURL(file);
-                previewVideo.src = url;
-                uploadSection.classList.add('hidden');
-                editorSection.classList.remove('hidden');
+                previewVideo.src = URL.createObjectURL(file);
+                dropZone.classList.add('hidden');
+                editor.classList.remove('hidden');
+                showToast("動画を読み込みました");
             }
         };
 
+        // Gain Slider Change
         gainSlider.oninput = () => {
-            gainDisplay.innerText = gainSlider.value;
-            const val = parseFloat(gainSlider.value);
+            const val = gainSlider.value;
+            gainVal.innerText = val;
             if (gainNode) {
-                gainNode.gain.setTargetAtTime(Math.pow(val / 10, 2.5), audioCtx.currentTime, 0.01);
+                // Exponential gain for extreme distortion
+                gainNode.gain.value = Math.pow(val / 10, 2.5);
             }
-            if (val > 100) titleText.classList.add('shaking');
-            else titleText.classList.remove('shaking');
+            if (val > 60) {
+                title.classList.add('extreme-shake');
+                overlay.classList.remove('hidden');
+            } else {
+                title.classList.remove('extreme-shake');
+                overlay.classList.add('hidden');
+            }
         };
 
-        processBtn.onclick = async () => {
+        // Recording Process
+        recordBtn.onclick = async () => {
             try {
                 await initAudio();
                 
-                isProcessing = true;
-                editorSection.classList.add('hidden');
-                processingOverlay.classList.remove('hidden');
-
-                const val = parseFloat(gainSlider.value);
-                gainNode.gain.setValueAtTime(Math.pow(val / 10, 2.5), audioCtx.currentTime);
-
-                // Check for captureStream support
-                if (!previewVideo.captureStream && !previewVideo.mozCaptureStream) {
-                    throw new Error("このブラウザは動画のキャプチャをサポートしていません。最新のChromeでお試しください。");
+                // Cross-browser captureStream support
+                const streamFunc = previewVideo.captureStream || previewVideo.mozCaptureStream;
+                if (!streamFunc) {
+                    throw new Error("お使いのブラウザでは動画キャプチャがサポートされていません。ChromeやFirefoxをお使いください。");
                 }
 
-                const stream = previewVideo.captureStream ? previewVideo.captureStream() : previewVideo.mozCaptureStream();
-                
-                // Audio track from our distorted source
-                const distortedAudioTrack = streamDestination.stream.getAudioTracks()[0];
-                
+                isRecording = true;
+                editor.classList.add('hidden');
+                progressContainer.classList.remove('hidden');
+
+                const vStream = streamFunc.call(previewVideo);
                 const combinedStream = new MediaStream([
-                    ...stream.getVideoTracks(),
-                    distortedAudioTrack
+                    ...vStream.getVideoTracks(),
+                    ...dest.stream.getAudioTracks()
                 ]);
 
-                const options = { mimeType: 'video/webm;codecs=vp8,opus' };
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options.mimeType = 'video/webm';
-                }
+                // Try to find a supported mimeType
+                const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') 
+                    ? 'video/webm;codecs=vp9,opus' 
+                    : 'video/webm';
 
-                const mediaRecorder = new MediaRecorder(combinedStream, options);
+                const recorder = new MediaRecorder(combinedStream, { mimeType });
                 const chunks = [];
 
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) chunks.push(e.data);
-                };
-
-                mediaRecorder.onstop = () => {
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.onstop = () => {
                     const blob = new Blob(chunks, { type: 'video/webm' });
                     const url = URL.createObjectURL(blob);
-                    resultVideo.src = url;
+                    finalVideo.src = url;
                     downloadLink.href = url;
-                    downloadLink.download = `distorted_${Date.now()}.webm`;
+                    downloadLink.download = `earrape_${Date.now()}.webm`;
                     
-                    processingOverlay.classList.add('hidden');
-                    resultSection.classList.remove('hidden');
-                    isProcessing = false;
+                    progressContainer.classList.add('hidden');
+                    result.classList.remove('hidden');
+                    isRecording = false;
                 };
 
+                // Prepare and Start
                 previewVideo.currentTime = 0;
                 previewVideo.muted = false;
-                previewVideo.volume = 0.05; // 録画中のスピーカー音量は抑える
+                previewVideo.volume = 0.1; // Preview volume low, but signal to gainNode is high
                 
-                mediaRecorder.start();
+                recorder.start();
 
-                const checkEnd = () => {
-                    if (!isProcessing) return;
-                    const progress = (previewVideo.currentTime / previewVideo.duration) * 100;
-                    progressBar.style.width = `${progress}%`;
-                    
-                    if (previewVideo.ended || previewVideo.currentTime >= previewVideo.duration) {
-                        mediaRecorder.stop();
+                const trackProgress = () => {
+                    if (!isRecording) return;
+                    const percent = (previewVideo.currentTime / previewVideo.duration) * 100;
+                    progressBar.style.width = `${percent}%`;
+
+                    if (previewVideo.ended) {
+                        recorder.stop();
                         previewVideo.pause();
                     } else {
-                        requestAnimationFrame(checkEnd);
+                        requestAnimationFrame(trackProgress);
                     }
                 };
 
-                previewVideo.play().then(() => {
-                    checkEnd();
-                }).catch(err => {
-                    throw new Error("再生を開始できませんでした。");
+                previewVideo.play().then(trackProgress).catch(err => {
+                    showToast("再生エラー: 再度お試しください");
+                    isRecording = false;
+                    progressContainer.classList.add('hidden');
+                    editor.classList.remove('hidden');
                 });
 
             } catch (err) {
+                showToast(err.message);
                 console.error(err);
-                showMessage(err.message || "エラーが発生しました。ローカルに保存して実行してください。");
-                isProcessing = false;
-                processingOverlay.classList.add('hidden');
-                editorSection.classList.remove('hidden');
+            }
+        };
+
+        // Drag & Drop
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('border-red-600'); };
+        dropZone.ondragleave = () => { dropZone.classList.remove('border-red-600'); };
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('video/')) {
+                input.files = e.dataTransfer.files;
+                input.onchange({ target: input });
             }
         };
     </script>
